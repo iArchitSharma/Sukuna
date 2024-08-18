@@ -7,19 +7,19 @@
 
 using namespace std;
 
-void main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {  // Change from void to int
     cout << "Sukuna Compiler" << endl;
 
     if (argc != 2) {
         cerr << "Error: Compiler needs source file as argument." << endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     // Open the source file.
     ifstream inputFile(argv[1]);
     if (!inputFile) {
         cerr << "Error: Could not open the file " << argv[1] << endl;
-        exit(EXIT_FAILURE);
+        return EXIT_FAILURE;
     }
 
     // Read the entire content of the file into a string.
@@ -30,7 +30,8 @@ void main(int argc, char* argv[]) {
     Parser parser(lexer);
 
     // Start the parser.
-    parser.parse(); 
+    parser.parse();  
     cout << "Parsing completed." << endl;
-}
 
+    return EXIT_SUCCESS;  
+}
