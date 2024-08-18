@@ -1,3 +1,6 @@
+#ifndef PARSER_H
+#define PARSER_H
+
 #include <iostream>
 #include <set>
 #include <string>
@@ -5,47 +8,57 @@
 #include "lexer.h"
 using namespace std;
 
-//Parser object keeps track of current token and checks if the code matches the grammar
+// Convert TokenType to string for error messages
+string tokenTypeToString(TokenType type) {
+    switch(type) {
+        case TokenType::PRINT: return "PRINT";
+        case TokenType::IF: return "IF";
+        // Add more cases for your token types
+        default: return "UNKNOWN";
+    }
+}
+
+// Parser object keeps track of current token and checks if the code matches the grammar
 class Parser {
 private:
     Lexer lexer;
     Token curToken;
     Token peekToken;
-    set<string> symbols;        //All variables we have declared so far
-    set<string> labelsDeclared; //Keep track of all labels declared
-    set<string> labelsGotoed; //All labels goto'ed, so we know if they exist or not
+    set<string> symbols;        // All variables we have declared so far
+    set<string> labelsDeclared; // Keep track of all labels declared
+    set<string> labelsGotoed;   // All labels goto'ed, so we know if they exist or not
 
     // Return true if the current token matches
-    bool checkToken(TokenType kind){
+    bool checkToken(TokenType kind) {
         return kind == curToken.kind;
     }
 
     // Return true if the next token matches
-    bool checkPeek(TokenType kind){
+    bool checkPeek(TokenType kind) {
         return kind == peekToken.kind;
     }
 
-    //Try to match current token. If not, error. Advances the current token
-    void match(TokenType kind){
-        if(!checkToken(kind)){
+    // Try to match current token. If not, error. Advances the current token
+    void match(TokenType kind) {
+        if(!checkToken(kind)) {
             abort("Expected " + tokenTypeToString(kind) + ", got " + tokenTypeToString(curToken.kind));
         }
         nextToken();
     }
 
-    //Advances the current token
-    void nextToken(){
+    // Advances the current token
+    void nextToken() {
         curToken = peekToken;
         peekToken = lexer.getToken();
     }
 
-    void abort(const string& message){
-        cerr << "Error: " << message <<endl;
+    void abort(const string& message) {
+        cerr << "Error: " << message << endl;
         exit(EXIT_FAILURE);
     }
 
-    //Return true if the current token is a comparison operator
-    bool isComparisonOperator(){
+    // Return true if the current token is a comparison operator
+    bool isComparisonOperator() {
         return checkToken(TokenType::GT) || checkToken(TokenType::GTEQ) || 
                checkToken(TokenType::LT) || checkToken(TokenType::LTEQ) || 
                checkToken(TokenType::EQEQ) || checkToken(TokenType::NOTEQ);
@@ -54,61 +67,57 @@ private:
     // Production rules.
     // program ::= {statement}
 
-    void program(){
+    void program() {
         cout << "PROGRAM" << endl;
 
-        while (checkToken(TokenType::NEWLINE))
-        {
+        while (checkToken(TokenType::NEWLINE)) {
             nextToken();
         }
         // Parse all the statements in the program
-        while(!checkToken(TokenType::END_OF_FILE)){
+        while (!checkToken(TokenType::END_OF_FILE)) {
             statement();
         }
 
-        for(const auto& label : labelsGotoed){
-            if(labelsDeclared.find(label) == labelsDeclared.end()){
+        for (const auto& label : labelsGotoed) {
+            if (labelsDeclared.find(label) == labelsDeclared.end()) {
                 abort("Attempting to GOTO undeclared label: " + label);
             }
         }
-        
     }
-    //One of the following statements...
-    void statement(){
-        //Check the first token to see what kind of statement this is
 
-        //"PRINT" (expression | string)
-        if(checkToken(TokenType::PRINT)){
+    // One of the following statements...
+    void statement() {
+        if (checkToken(TokenType::PRINT)) {
             cout << "STATEMENT-PRINT" << endl;
             nextToken();
-            if(checkToken(TokenType::STRING)){
+            if (checkToken(TokenType::STRING)) {
                 nextToken();
-            }else{
+            } else {
                 expression();
             }
-        }else if(checkToken(TokenType::IF)){
-            cout << "STATEMENT-IF" <<endl;
+        } else if (checkToken(TokenType::IF)) {
+            cout << "STATEMENT-IF" << endl;
             nextToken();
             comparison();
             match(TokenType::THEN);
             nl();
 
-            while(!checkToken(TokenType::ENDIF)){
+            while (!checkToken(TokenType::ENDIF)) {
                 statement();
             }
             match(TokenType::ENDIF);
-        }else if(checkToken(TokenType::WHILE)){
+        } else if (checkToken(TokenType::WHILE)) {
             cout << "STATEMENT-WHILE" << endl;
             nextToken();
             comparison();
             match(TokenType::REPEAT);
             nl();
 
-            while(!checkToken(TokenType::ENDWHILE)){
+            while (!checkToken(TokenType::ENDWHILE)) {
                 statement();
             }
             match(TokenType::ENDWHILE);
-        }else if(checkToken(TokenType::LABEL)) {
+        } else if (checkToken(TokenType::LABEL)) {
             cout << "STATEMENT-LABEL" << endl;
             nextToken();
 
@@ -149,6 +158,7 @@ private:
 
         nl();
     }
+
     void comparison() {
         cout << "COMPARISON" << endl;
         expression();
@@ -222,9 +232,12 @@ private:
     }
 
 public:
-    Parser(Lexer lexer): lexer(lexer) {
+    Parser(Lexer lexer)
+        : lexer(lexer),
+          curToken("", TokenType::END_OF_FILE),
+          peekToken("", TokenType::END_OF_FILE) {
         nextToken();
-        nextToken();     // Call this twice to initialize current and peek
+        nextToken(); // Call this twice to initialize current and peek
     }
 
     void parse() {
@@ -232,10 +245,5 @@ public:
     }
 };
 
-int main() {
-    string input = "LET x = 10\nPRINT x\n";
-    Lexer lexer(input);
-    Parser parser(lexer);
-    parser.parse();
-    return 0;
-}
+
+#endif
