@@ -70,6 +70,7 @@ private:
     // program ::= {statement}
 
     void program() {
+        cout << "Entering program()" << endl;
         emitter.headerLine("#include <stdio.h>");
         emitter.headerLine("int main(void) {");
 
@@ -84,6 +85,7 @@ private:
 
         emitter.emitLine("return 0;");
         emitter.emitLine("}");
+        cout << "Exiting program()" << endl;
 
         for (const auto& label : labelsGotoed) {
             if (labelsDeclared.find(label) == labelsDeclared.end()) {
