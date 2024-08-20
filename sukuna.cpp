@@ -2,12 +2,13 @@
 #include <fstream>
 #include <string>
 #include <cstdlib>
-#include "lexer.h"  
-#include "parser.h" 
+#include "lexer.h"
+#include "emitter.h"
+#include "parser.h"
 
 using namespace std;
 
-int main(int argc, char* argv[]) {  // Change from void to int
+int main(int argc, char* argv[]) {
     cout << "Sukuna Compiler" << endl;
 
     if (argc != 2) {
@@ -25,13 +26,16 @@ int main(int argc, char* argv[]) {  // Change from void to int
     // Read the entire content of the file into a string.
     string source((istreambuf_iterator<char>(inputFile)), istreambuf_iterator<char>());
 
-    // Initialize the lexer and parser.
+    // Initialize the lexer, emitter, and parser.
     Lexer lexer(source);
-    Parser parser(lexer);
+    Emitter emitter("out.c");
+    Parser parser(lexer, emitter);
 
     // Start the parser.
-    parser.parse();  
-    cout << "Parsing completed." << endl;
+    parser.parse(); 
+    emitter.writeFile(); 
 
-    return EXIT_SUCCESS;  
+    cout << "Compiling completed." << endl;
+
+    return EXIT_SUCCESS;
 }

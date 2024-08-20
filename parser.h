@@ -6,6 +6,7 @@
 #include <string>
 #include <cstdlib>
 #include "lexer.h"
+#include "emitter.h"
 using namespace std;
 
 // Convert TokenType to string for error messages
@@ -22,6 +23,7 @@ string tokenTypeToString(TokenType type) {
 class Parser {
 private:
     Lexer lexer;
+    Emitter emitter;
     Token curToken;
     Token peekToken;
     set<string> symbols;        // All variables we have declared so far
@@ -68,8 +70,10 @@ private:
     // program ::= {statement}
 
     void program() {
-        cout << "PROGRAM" << endl;
+        emitter.headerLine("#include <stdio.h>");
+        emitter.headerLine("int main(void) {");
 
+        //Since some newlines are required in our grammar, need to skip the excess
         while (checkToken(TokenType::NEWLINE)) {
             nextToken();
         }
@@ -77,6 +81,9 @@ private:
         while (!checkToken(TokenType::END_OF_FILE)) {
             statement();
         }
+
+        emitter.emitLine("return 0;");
+        emitter.emitLine("}");
 
         for (const auto& label : labelsGotoed) {
             if (labelsDeclared.find(label) == labelsDeclared.end()) {
@@ -88,37 +95,43 @@ private:
     // One of the following statements...
     void statement() {
         if (checkToken(TokenType::PRINT)) {
-            cout << "STATEMENT-PRINT" << endl;
             nextToken();
             if (checkToken(TokenType::STRING)) {
+                emitter.emitLine("printf(\"" + curToken.text + "\\n\");");
                 nextToken();
             } else {
+                emitter.emit("printf(\"%.2f\\n\", (float)(");
                 expression();
+                emitter.emitLine("));");
             }
         } else if (checkToken(TokenType::IF)) {
-            cout << "STATEMENT-IF" << endl;
             nextToken();
+            emitter.emit("if(");
             comparison();
             match(TokenType::THEN);
             nl();
+            emitter.emitLine("){");
 
             while (!checkToken(TokenType::ENDIF)) {
                 statement();
             }
             match(TokenType::ENDIF);
+            emitter.emitLine("}");
+            //"WHILE" comparison "REPEAT" block "ENDWHILE"
         } else if (checkToken(TokenType::WHILE)) {
-            cout << "STATEMENT-WHILE" << endl;
             nextToken();
+            emitter.emit("while(");
             comparison();
             match(TokenType::REPEAT);
             nl();
+            emitter.emitLine("){");
 
             while (!checkToken(TokenType::ENDWHILE)) {
                 statement();
             }
             match(TokenType::ENDWHILE);
+            emitter.emitLine("}");
         } else if (checkToken(TokenType::LABEL)) {
-            cout << "STATEMENT-LABEL" << endl;
             nextToken();
 
             if (labelsDeclared.find(curToken.text) != labelsDeclared.end()) {
@@ -126,31 +139,39 @@ private:
             }
 
             labelsDeclared.insert(curToken.text);
+            emitter.emitLine(curToken.text + ":");
             match(TokenType::IDENT);
         } else if (checkToken(TokenType::GOTO)) {
-            cout << "STATEMENT-GOTO" << endl;
             nextToken();
             labelsGotoed.insert(curToken.text);
+            emitter.emitLine("goto " + curToken.text + ";");
             match(TokenType::IDENT);
         } else if (checkToken(TokenType::LET)) {
-            cout << "STATEMENT-LET" << endl;
             nextToken();
 
             if (symbols.find(curToken.text) == symbols.end()) {
                 symbols.insert(curToken.text);
+                emitter.headerLine("float " + curToken.text + ";");
             }
 
+            emitter.emit(curToken.text + " = ");
             match(TokenType::IDENT);
             match(TokenType::EQ);
             expression();
+            emitter.emitLine(";");
         } else if (checkToken(TokenType::INPUT)) {
-            cout << "STATEMENT-INPUT" << endl;
             nextToken();
 
             if (symbols.find(curToken.text) == symbols.end()) {
                 symbols.insert(curToken.text);
+                emitter.headerLine("float " + curToken.text + ";");
             }
 
+            emitter.emitLine("if(0 == scanf(\"%f\", &" + curToken.text + ")) {");
+            emitter.emitLine(curToken.text + " = 0;");
+            emitter.emit("scanf(\"%");
+            emitter.emitLine("*s\");");
+            emitter.emitLine("}");
             match(TokenType::IDENT);
         } else {
             abort("Invalid statement at " + curToken.text + " (" + tokenTypeToString(curToken.kind) + ")");
@@ -160,10 +181,10 @@ private:
     }
 
     void comparison() {
-        cout << "COMPARISON" << endl;
         expression();
 
         if (isComparisonOperator()) {
+            emitter.emit(curToken.text);
             nextToken();
             expression();
         } else {
@@ -171,35 +192,36 @@ private:
         }
 
         while (isComparisonOperator()) {
+            emitter.emit(curToken.text);
             nextToken();
             expression();
         }
     }
 
     void expression() {
-        cout << "EXPRESSION" << endl;
         term();
 
         while (checkToken(TokenType::PLUS) || checkToken(TokenType::MINUS)) {
+            emitter.emit(curToken.text);
             nextToken();
             term();
         }
     }
 
     void term() {
-        cout << "TERM" << endl;
         unary();
 
         while (checkToken(TokenType::ASTERISK) || checkToken(TokenType::SLASH)) {
+            emitter.emit(curToken.text);
             nextToken();
             unary();
         }
     }
 
     void unary() {
-        cout << "UNARY" << endl;
 
         if (checkToken(TokenType::PLUS) || checkToken(TokenType::MINUS)) {
+            emitter.emit(curToken.text);
             nextToken();
         }
 
@@ -207,15 +229,16 @@ private:
     }
 
     void primary() {
-        cout << "PRIMARY (" << curToken.text << ")" << endl;
 
         if (checkToken(TokenType::NUMBER)) {
+            emitter.emit(curToken.text);
             nextToken();
         } else if (checkToken(TokenType::IDENT)) {
             if (symbols.find(curToken.text) == symbols.end()) {
                 abort("Referencing variable before assignment: " + curToken.text);
             }
 
+            emitter.emit(curToken.text);
             nextToken();
         } else {
             abort("Unexpected token at " + curToken.text);
@@ -223,7 +246,6 @@ private:
     }
 
     void nl() {
-        cout << "NEWLINE" << endl;
         match(TokenType::NEWLINE);
 
         while (checkToken(TokenType::NEWLINE)) {
@@ -232,8 +254,9 @@ private:
     }
 
 public:
-    Parser(Lexer lexer)
+    Parser(Lexer lexer, Emitter emitter)
         : lexer(lexer),
+          emitter(emitter),
           curToken("", TokenType::END_OF_FILE),
           peekToken("", TokenType::END_OF_FILE) {
         nextToken();
