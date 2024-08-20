@@ -6,7 +6,7 @@
 #include <string>
 using namespace std;
 
-//Emitter object keeps track of the generated code and outputs it.
+// Emitter object keeps track of the generated code and outputs it.
 
 class Emitter {
 private:
@@ -14,13 +14,13 @@ private:
     string header;
     string code;
 public:
-    Emitter(const string& filePath): fullPath(filePath), header(""), code(""){}
+    Emitter(const string& filePath) : fullPath(filePath), header(""), code("") {}
 
-    void emit(const string& newCode){
+    void emit(const string& newCode) {
         code += newCode;
     }
 
-    void emitLine(const string& newCode){
+    void emitLine(const string& newCode) {
         code += newCode + '\n';
     }
 
@@ -28,16 +28,21 @@ public:
         header += newCode + '\n';
     }
 
-    void writeFile(){
+    void writeFile() {
         ofstream outputFile(fullPath);
-        if(outputFile.is_open()){
+        if (outputFile.is_open()) {
+            // Debug: Print header and code to console
+            cout << "Writing to file: " << fullPath << endl;
+            cout << "Header:\n" << header << endl;
+            cout << "Code:\n" << code << endl;
+
             outputFile << header << code;
             outputFile.close();
-        }else{
+            cout << "File written successfully." << endl;
+        } else {
             cerr << "Error: Could not open file " << fullPath << " for writing." << endl;
         }
     }
 };
-
 
 #endif
