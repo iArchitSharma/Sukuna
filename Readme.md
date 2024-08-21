@@ -12,5 +12,5 @@ To check the version of `g++` installed on your system, run:
 
 ```bash
 g++ --version
-
+```
 ![compiler](https://github.com/user-attachments/assets/9558ee95-6a71-4dd2-bc9e-b6573af416db)
