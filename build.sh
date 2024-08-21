@@ -6,12 +6,12 @@ function comp {
     BN=$(basename -s .sk $1)  # Get the base name of the input file without the extension
 
     # Compile the C++ code (sukuna.cpp)
-    TTOUTPUT=$(${CPP} ${COMPILER} -o sukuna 2>&1)
+    TTOUTPUT=$(${CPP} ${COMPILER} -o bin/sukuna 2>&1)
     if [ $? -ne 0 ]; then
         echo "${TTOUTPUT}"  # Print the compiler output if there was an error
     else
         # Execute the compiled binary with the input file as an argument
-        BINOUT=$(./sukuna $1 2>&1)
+        BINOUT=$(./bin/sukuna $1 2>&1)
         if [ $? -ne 0 ]; then
             echo "Execution Error: ${BINOUT}"
         else
