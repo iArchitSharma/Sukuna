@@ -33,8 +33,6 @@ public:
         if (outputFile.is_open()) {
             // Debug: Print header and code to console
             cout << "Writing to file: " << fullPath << endl;
-            cout << "Header:\n" << header << endl;
-            cout << "Code:\n" << code << endl;
 
             outputFile << header << code;
             outputFile.close();

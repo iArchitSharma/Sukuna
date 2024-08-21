@@ -22,8 +22,8 @@ string tokenTypeToString(TokenType type) {
 // Parser object keeps track of current token and checks if the code matches the grammar
 class Parser {
 private:
-    Lexer lexer;
-    Emitter emitter;
+    Lexer& lexer;
+    Emitter& emitter;
     Token curToken;
     Token peekToken;
     set<string> symbols;        // All variables we have declared so far
@@ -70,7 +70,6 @@ private:
     // program ::= {statement}
 
     void program() {
-        cout << "Entering program()" << endl;
         emitter.headerLine("#include <stdio.h>");
         emitter.headerLine("int main(void) {");
 
@@ -85,7 +84,6 @@ private:
 
         emitter.emitLine("return 0;");
         emitter.emitLine("}");
-        cout << "Exiting program()" << endl;
 
         for (const auto& label : labelsGotoed) {
             if (labelsDeclared.find(label) == labelsDeclared.end()) {
@@ -256,7 +254,7 @@ private:
     }
 
 public:
-    Parser(Lexer lexer, Emitter emitter)
+    Parser(Lexer& lexer, Emitter& emitter)
         : lexer(lexer),
           emitter(emitter),
           curToken("", TokenType::END_OF_FILE),
