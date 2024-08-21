@@ -2,9 +2,9 @@
 #include <fstream>
 #include <string>
 #include <cstdlib>
-#include "lexer.h"
-#include "emitter.h"
-#include "parser.h"
+#include "../include/lexer.h"
+#include "../include/emitter.h"
+#include "../include/parser.h"
 
 using namespace std;
 

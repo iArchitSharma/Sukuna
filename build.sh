@@ -1,9 +1,8 @@
-# Define the compiler and necessary tools
 CPP="g++"
-COMPILER="sukuna.cpp"
+COMPILER="src/sukuna.cpp"
 
 function comp {
-    BN=$(basename -s .sk $1)  # Get the base name of the input file without the extension
+    BN=$(basename -s .sk $1)  
 
     # Compile the C++ code (sukuna.cpp)
     TTOUTPUT=$(${CPP} ${COMPILER} -o bin/sukuna 2>&1)
@@ -15,7 +14,7 @@ function comp {
         if [ $? -ne 0 ]; then
             echo "Execution Error: ${BINOUT}"
         else
-            echo "${BINOUT}"  # Print the output of the execution
+            echo "${BINOUT}"  
         fi
     fi
 }
@@ -24,5 +23,5 @@ if [ $# -eq 0 ]; then
     echo "No input file provided."
     echo "Usage: $0 <inputFile>"
 else
-    comp $1  # Compile and execute the specific file provided as an argument
+    comp $1  
 fi
