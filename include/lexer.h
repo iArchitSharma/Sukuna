@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <cctype>
 #include <map>
-#include <optional>
+
 using namespace std;
 
 enum class TokenType
@@ -42,6 +42,37 @@ enum class TokenType
   GTEQ = 211
 };
 
+// A simple custom pointer wrapper to mimic optional behavior
+template<typename T>
+class OptionalPtr
+{
+public:
+    OptionalPtr() : ptr(nullptr) {}
+    OptionalPtr(T value) : ptr(new T(value)) {}
+    ~OptionalPtr() { delete ptr; }
+
+    // Check if a value is present
+    bool has_value() const { return ptr != nullptr; }
+
+    // Dereference the pointer to get the value
+    T& value() {
+        if (!ptr) {
+            throw runtime_error("Attempted to access value of an empty OptionalPtr");
+        }
+        return *ptr;
+    }
+
+    const T& value() const {
+        if (!ptr) {
+            throw runtime_error("Attempted to access value of an empty OptionalPtr");
+        }
+        return *ptr;
+    }
+
+private:
+    T* ptr;
+};
+
 // Token contains the original text and the type of token
 class Token
 {
@@ -50,7 +81,7 @@ public:
   TokenType kind;
   Token(string tokenText, TokenType tokenKind) : text(tokenText), kind(tokenKind) {}
 
-  static optional<TokenType> checkIfKeyword(const string &tokenText)
+  static OptionalPtr<TokenType> checkIfKeyword(const string &tokenText)
   {
     static map<string, TokenType> keywords = {
         {"LABEL", TokenType::LABEL},
@@ -68,9 +99,9 @@ public:
     auto it = keywords.find(tokenText);
     if (it != keywords.end())
     {
-      return it->second;
+      return OptionalPtr<TokenType>(it->second);
     }
-    return nullopt;
+    return OptionalPtr<TokenType>();
   }
 };
 
@@ -205,10 +236,10 @@ public:
       }
 
       string tokText = source.substr(startPos, curPos - startPos + 1);
-      optional<TokenType> keyword = Token::checkIfKeyword(tokText);
-      if (keyword)
+      OptionalPtr<TokenType> keyword = Token::checkIfKeyword(tokText);
+      if (keyword.has_value())
       {
-        token = Token(tokText, *keyword);
+        token = Token(tokText, keyword.value());
       }
       else
       {
@@ -286,6 +317,5 @@ private:
     }
   }
 };
-
 
 #endif // LEXER_H
