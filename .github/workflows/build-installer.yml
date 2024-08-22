@@ -14,7 +14,12 @@ jobs:
     - name: Install Inno Setup
       run: |
         Invoke-WebRequest -Uri https://jrsoftware.org/isdl.php?file=innosetup-6.2.0.exe -OutFile inno_setup.exe
-        Start-Process -Wait -FilePath .\inno_setup.exe -ArgumentList '/SILENT'
+        $fullPath = (Resolve-Path .\inno_setup.exe).Path
+        Start-Process -Wait -FilePath $fullPath -ArgumentList '/SILENT'
+
+    - name: List files in workspace
+      run: |
+        dir
 
     - name: Install MinGW-w64
       run: |
