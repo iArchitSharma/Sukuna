@@ -14,12 +14,11 @@ jobs:
     - name: Install Inno Setup
       run: |
         Invoke-WebRequest -Uri https://jrsoftware.org/isdl.php?file=innosetup-6.2.0.exe -OutFile inno_setup.exe
-        $fullPath = (Resolve-Path .\inno_setup.exe).Path
-        Start-Process -Wait -FilePath $fullPath -ArgumentList '/SILENT'
-
-    - name: List files in workspace
-      run: |
-        dir
+        # Verify file download
+        $file = Get-Item .\inno_setup.exe
+        $file.Length
+        # Attempt installation
+        & .\inno_setup.exe /SILENT
 
     - name: Install MinGW-w64
       run: |
@@ -40,7 +39,7 @@ jobs:
       with:
         name: artifacts
         path: |
-          path\to\your\installer.exe
+          installer.exe
           build\sukuna.exe
     
     - name: Create Release
@@ -58,7 +57,7 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: path\to\your\installer.exe
+        asset_path: installer.exe
         asset_name: installer.exe
         asset_content_type: application/octet-stream
 
