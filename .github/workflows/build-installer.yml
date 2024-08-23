@@ -11,7 +11,13 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install MinGW-w64
+    - name: Install 7zip
+      run: |
+        Invoke-WebRequest -Uri https://www.7-zip.org/a/7z2107-x64.exe -OutFile 7zip.exe
+        Start-Process -Wait -FilePath .\7zip.exe -ArgumentList '/S'
+        $env:Path += ";C:\Program Files\7-Zip"
+
+    - name: Download and Install MinGW-w64
       run: |
         # Download MinGW-w64
         Invoke-WebRequest -Uri https://sourceforge.net/projects/mingw-w64/files/latest/download -OutFile mingw-w64.zip
@@ -22,12 +28,12 @@ jobs:
           New-Item -Path $destinationPath -ItemType Directory
         }
 
-        # Expand the archive
-        Expand-Archive -Path mingw-w64.zip -DestinationPath $destinationPath
+        # Extract the archive using 7zip
+        & "C:\Program Files\7-Zip\7z.exe" x mingw-w64.zip -o$destinationPath
 
         # Add MinGW to the PATH
         $env:Path += ";$destinationPath\mingw64\bin"
-    
+
     - name: Build sukuna.exe
       run: |
         & "C:\mingw-w64\mingw64\bin\x86_64-w64-mingw32-g++.exe" -static -o build\sukuna.exe src\*.cpp
