@@ -13,10 +13,21 @@ jobs:
 
     - name: Install MinGW-w64
       run: |
+        # Download MinGW-w64
         Invoke-WebRequest -Uri https://sourceforge.net/projects/mingw-w64/files/latest/download -OutFile mingw-w64.zip
-        Expand-Archive -Path mingw-w64.zip -DestinationPath C:\mingw-w64
-        $env:Path += ";C:\mingw-w64\mingw64\bin"
 
+        # Create destination directory if it doesn't exist
+        $destinationPath = 'C:\mingw-w64'
+        if (-Not (Test-Path $destinationPath)) {
+          New-Item -Path $destinationPath -ItemType Directory
+        }
+
+        # Expand the archive
+        Expand-Archive -Path mingw-w64.zip -DestinationPath $destinationPath
+
+        # Add MinGW to the PATH
+        $env:Path += ";$destinationPath\mingw64\bin"
+    
     - name: Build sukuna.exe
       run: |
         & "C:\mingw-w64\mingw64\bin\x86_64-w64-mingw32-g++.exe" -static -o build\sukuna.exe src\*.cpp
