@@ -25,3 +25,6 @@ Sukuna supports standard subset of features:
 - Comments
 
 ![compiler](https://github.com/user-attachments/assets/9558ee95-6a71-4dd2-bc9e-b6573af416db)
+
+
+`make all` to create the release

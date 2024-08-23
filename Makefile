@@ -1,7 +1,8 @@
-# Variables
 TARGET_EXEC = sukuna.exe
 SRC_DIR = src
-ZIP_FILE = sukuna-release.zip
+RELEASE_DIR = release
+TEMP_DIR = $(RELEASE_DIR)/temp
+ZIP_FILE = $(RELEASE_DIR)/sukuna-win-v1.zip
 WIN_UTIL_DIR = util/win
 
 # MinGW compiler
@@ -9,16 +10,25 @@ CXX = x86_64-w64-mingw32-g++
 CXXFLAGS = -static
 
 # Default target
-all: build zip
+all: clean build zip clean-temp
 
-# Build the executable
-build:
-	$(CXX) $(CXXFLAGS) -o $(TARGET_EXEC) $(SRC_DIR)/*.cpp
+# Create the temp directory and prepare files
+prepare-temp:
+	mkdir -p $(TEMP_DIR)
+	cp -r $(WIN_UTIL_DIR)/* $(TEMP_DIR)/
 
-# Create a zip file directly from the source and build directories
+# Build the executable and place it in temp
+build: prepare-temp
+	$(CXX) $(CXXFLAGS) -o $(TEMP_DIR)/$(TARGET_EXEC) $(SRC_DIR)/*.cpp
+
+# Create the zip file from the temp directory
 zip: build
-	zip -r $(ZIP_FILE) $(TARGET_EXEC) $(WIN_UTIL_DIR)/*
+	cd $(TEMP_DIR) && zip -r ../sukuna-win-v1.zip .
 
 # Clean up
 clean:
-	rm -rf $(TARGET_EXEC) $(ZIP_FILE)
+	rm -f $(RELEASE_DIR)/$(TARGET_EXEC) $(ZIP_FILE)
+
+# Remove the temp directory
+clean-temp:
+	rm -rf $(TEMP_DIR)
