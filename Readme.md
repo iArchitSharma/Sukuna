@@ -26,5 +26,16 @@ Sukuna supports standard subset of features:
 
 ![compiler](https://github.com/user-attachments/assets/9558ee95-6a71-4dd2-bc9e-b6573af416db)
 
+`./build.sh <.sk File>` to locally compile the Sukuna code on linux
 
 `make all` to create the release
+
+## Familirization:
+
+- Lexical analysis
+- Syntactic analysis
+- Recursive descent parsing
+- Abstract syntax tree
+- Semantic analysis
+- Optimization passes
+- Code generation
