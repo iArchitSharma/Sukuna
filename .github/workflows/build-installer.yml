@@ -1,45 +1,42 @@
-name: Build Installer and Executable
+name: Build and Publish Sukuna Installer
 
 on:
-  workflow_dispatch: # This allows the workflow to be manually triggered
+  workflow_dispatch: # Allows the workflow to be triggered manually
 
 jobs:
   build:
     runs-on: windows-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
-
-    - name: Install Inno Setup
-      run: |
-        Invoke-WebRequest -Uri https://jrsoftware.org/isdl.php?file=innosetup-6.2.0.exe -OutFile inno_setup.exe
-        # Verify file download
-        $file = Get-Item .\inno_setup.exe
-        $file.Length
-        # Attempt installation
-        & .\inno_setup.exe /SILENT
 
     - name: Install MinGW-w64
       run: |
         Invoke-WebRequest -Uri https://sourceforge.net/projects/mingw-w64/files/latest/download -OutFile mingw-w64.zip
         Expand-Archive -Path mingw-w64.zip -DestinationPath C:\mingw-w64
         $env:Path += ";C:\mingw-w64\mingw64\bin"
-    
+
     - name: Build sukuna.exe
       run: |
         & "C:\mingw-w64\mingw64\bin\x86_64-w64-mingw32-g++.exe" -static -o build\sukuna.exe src\*.cpp
 
-    - name: Build Installer
+    - name: Install NSIS
       run: |
-        & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" "sukuna_installer.iss"
+        Invoke-WebRequest -Uri https://nsis.sourceforge.io/mediawiki/images/7/7b/Nsis-3.06.1-setup.exe -OutFile nsis_setup.exe
+        Start-Process -Wait -FilePath .\nsis_setup.exe -ArgumentList '/S'
+        $env:Path += ";C:\Program Files (x86)\NSIS"
+
+    - name: Build Installer with NSIS
+      run: |
+        makensis.exe /V4 installer_script.nsi
 
     - name: Upload Installer and Executable Artifacts
       uses: actions/upload-artifact@v3
       with:
         name: artifacts
         path: |
-          installer.exe
+          sukuna_installer.exe
           build\sukuna.exe
     
     - name: Create Release
@@ -57,8 +54,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: installer.exe
-        asset_name: installer.exe
+        asset_path: sukuna_installer.exe
+        asset_name: sukuna_installer.exe
         asset_content_type: application/octet-stream
 
     - name: Upload sukuna.exe as Release Asset
