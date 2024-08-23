@@ -40,7 +40,7 @@ jobs:
         id: create-release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Use the PAT here
         with:
           tag_name: ${{ github.run_number }}
           release_name: Sukuna Release ${{ github.run_number }}
@@ -56,3 +56,4 @@ jobs:
           asset_path: release/sukuna-release.zip
           asset_name: sukuna-release.zip
           asset_content_type: application/zip
+          token: ${{ secrets.PAT_TOKEN }}  # Use the PAT here
