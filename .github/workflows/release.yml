@@ -1,10 +1,10 @@
-name: Create Release
+name: Build and Upload Zip
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-and-release:
+  build-and-upload:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -19,42 +19,18 @@ jobs:
         run: |
           x86_64-w64-mingw32-g++ -static -o sukuna.exe src/*.cpp
 
-      - name: Copy files
+      - name: Prepare release directory
         run: |
-          mkdir release
+          mkdir -p release
           cp sukuna.exe release/
           cp -r util/win/* release/
 
-      - name: Zip files
+      - name: Zip release files
         run: |
           cd release
           zip -r sukuna-release.zip *
 
-      - name: Upload release asset
-        uses: actions/upload-artifact@v3
-        with:
-          name: sukuna-release
-          path: release/sukuna-release.zip
-
-      - name: Create GitHub release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Correctly passing the token as an environment variable
-        with:
-          tag_name: ${{ github.run_number }}
-          release_name: Sukuna Release ${{ github.run_number }}
-          body: |
-            Automated release created by GitHub Actions
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset to GitHub release
-        uses: actions/upload-release-asset@v1
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: release/sukuna-release.zip
-          asset_name: sukuna-release.zip
-          asset_content_type: application/zip
-        env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}  # Correctly passing the token as an environment variable
+      - name: Upload release directory to repository
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/release
+          cp release/sukuna-release.zip $GITHUB_WORKSPACE/release/
