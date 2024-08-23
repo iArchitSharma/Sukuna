@@ -37,6 +37,7 @@ jobs:
           path: release/sukuna-release.zip
 
       - name: Create GitHub release
+        id: create-release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -47,5 +48,11 @@ jobs:
             Automated release created by GitHub Actions
           draft: false
           prerelease: false
+
+      - name: Upload release asset to GitHub release
+        uses: actions/upload-release-asset@v1
+        with:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset: sukuna-release
+          asset_path: release/sukuna-release.zip
+          asset_name: sukuna-release.zip
+          asset_content_type: application/zip
