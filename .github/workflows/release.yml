@@ -35,7 +35,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git checkout -b add-release-zip
-          git pull origin add-release-zip --rebase   # Pull changes from the remote branch
           git add release/sukuna-release.zip
           git commit -m "Add sukuna-release.zip to release directory"
+          git stash # Stash any remaining uncommitted changes (if any)
+          git pull origin add-release-zip --rebase
+          git stash pop # Apply stashed changes (if any)
           git push origin add-release-zip
