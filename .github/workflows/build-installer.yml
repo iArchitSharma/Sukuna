@@ -19,8 +19,8 @@ jobs:
 
     - name: Download and Install MinGW-w64
       run: |
-        # Download MinGW-w64
-        Invoke-WebRequest -Uri https://sourceforge.net/projects/mingw-w64/files/latest/download -OutFile mingw-w64.zip
+        # Download MinGW-w64 from a direct link
+        Invoke-WebRequest -Uri https://downloads.sourceforge.net/project/mingw-w64/Toolchains%20targetting%20Win64/Personal%20Builds/mingw-builds/12.2.0/threads-posix/seh/x86_64-12.2.0-release-posix-seh-rt_v10-rev2.7z -OutFile mingw-w64.7z
 
         # Create destination directory if it doesn't exist
         $destinationPath = 'C:\mingw-w64'
@@ -29,7 +29,7 @@ jobs:
         }
 
         # Extract the archive using 7zip
-        & "C:\Program Files\7-Zip\7z.exe" x mingw-w64.zip -o$destinationPath
+        & "C:\Program Files\7-Zip\7z.exe" x mingw-w64.7z -o$destinationPath
 
         # Add MinGW to the PATH
         $env:Path += ";$destinationPath\mingw64\bin"
