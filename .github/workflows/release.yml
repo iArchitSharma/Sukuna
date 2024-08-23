@@ -1,10 +1,10 @@
-name: Build and Upload Zip
+name: Build and Commit Zip
 
 on:
   workflow_dispatch:
 
 jobs:
-  build-and-upload:
+  build-and-commit:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -30,7 +30,11 @@ jobs:
           cd release
           zip -r sukuna-release.zip *
 
-      - name: Upload release directory to repository
+      - name: Commit and push release zip
         run: |
-          mkdir -p $GITHUB_WORKSPACE/release
-          cp release/sukuna-release.zip $GITHUB_WORKSPACE/release/
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b add-release-zip
+          git add release/sukuna-release.zip
+          git commit -m "Add sukuna-release.zip to release directory"
+          git push origin add-release-zip
