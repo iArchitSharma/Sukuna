@@ -28,7 +28,7 @@ int main(int argc, char* argv[]) {
 
     // Initialize the lexer, emitter, and parser.
     Lexer lexer(source);
-    Emitter emitter("bin/out.c");
+    Emitter emitter("out.c");
     Parser parser(lexer, emitter);
 
     // Start the parser.
